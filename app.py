@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app) 
 
 seats = [{"id": i, "status": "Available", "category": "Regular", "price": 100} for i in range(1, 51)]
 
