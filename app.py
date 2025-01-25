@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app) 
+app = Flask(__name__, static_folder="templates", static_url_path="")
+CORS(app)
 
+# Initialize seats
 seats = [{"id": i, "status": "Available", "category": "Regular", "price": 100} for i in range(1, 51)]
 
 @app.route("/")
 def index():
-    return send_from_directory('templates', 'index.html')
+    return send_from_directory("templates", "index.html")
 
 @app.route("/seats", methods=["GET"])
 def get_seats():
@@ -37,6 +38,7 @@ def cancel_booking():
             else:
                 return jsonify({"message": f"Seat {seat_id} is not booked!"}), 400
     return jsonify({"message": "Seat not found!"}), 404
+
 @app.route("/summary", methods=["GET"])
 def booking_summary():
     booked_seats = [seat for seat in seats if seat["status"] == "Booked"]
