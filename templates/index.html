@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Ticket Booking System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #theatre {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            gap: 10px;
+            justify-content: center;
+        }
+        .seat {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            height: 50px;
+            border: 1px solid #000;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .available {
+            background-color: green;
+            color: white;
+        }
+        .booked {
+            background-color: red;
+            color: white;
+        }
+        .vip {
+            border: 2px solid gold;
+        }
+        .regular {
+            border: 2px solid silver;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Ticket Booking System</h1>
+    <div id="theatre"></div>
+    <div id="summary"></div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000";
+
+        async function fetchSeats() {
+            const res = await fetch(`${API_BASE}/seats`);
+            const seats = await res.json();
+            renderSeats(seats);
+        }
+
+        async function fetchSummary() {
+            const res = await fetch(`${API_BASE}/summary`);
+            const summary = await res.json();
+            const summaryDiv = document.getElementById("summary");
+            summaryDiv.innerHTML = `
+                <h3>Total Revenue: ₹${summary.total_revenue}</h3>
+                <h3>Seats Booked: ${summary.booked_percentage.toFixed(2)}%</h3>
+            `;
+        }
+
+        function renderSeats(seats) {
+            const theatreDiv = document.getElementById("theatre");
+            theatreDiv.innerHTML = "";
+            seats.forEach(seat => {
+                const seatDiv = document.createElement("div");
+                seatDiv.className = `seat ${seat.status.toLowerCase()} ${seat.category.toLowerCase()}`;
+                seatDiv.innerText = `${seat.id} - ${seat.category}`;
+                seatDiv.onclick = () => handleSeatClick(seat);
+                theatreDiv.appendChild(seatDiv);
+            });
+        }
+
+        async function handleSeatClick(seat) {
+            if (seat.status === "Available") {
+                const res = await fetch(`${API_BASE}/book`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: seat.id }),
+                });
+                const data = await res.json();
+                alert(data.message);
+            } else if (seat.status === "Booked") {
+                const res = await fetch(`${API_BASE}/cancel`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: seat.id }),
+                });
+                const data = await res.json();
+                alert(data.message);
+            }
+            fetchSeats();
+            fetchSummary();
+        }
+        fetchSeats();
+        fetchSummary();
+    </script>
+</body>
+</html>
